@@ -42,14 +42,14 @@ pub fn clean_terminal() -> Result<(), UIError> {
 
 #[macro_export]
 macro_rules! repeat {
-    ($char:expr, $times:expr) => {
+    ($char:expr_2021, $times:expr_2021) => {
         (0..$times).map(|_| $char).collect::<String>()
     };
 }
 
 #[macro_export]
 macro_rules! format_text {
-    ($char:expr, $($style:expr),*) => {
+    ($char:expr_2021, $($style:expr_2021),*) => {
         {
             let mut v = Vec::new();
             let styles = vec![$($style),*];

@@ -106,21 +106,18 @@ pub async fn make_changes(state: &mut RSState) -> Result<()> {
         }
     }
 
-    if let Some(index) = state.redraw.peak_volume {
-        if state
+    if let Some(index) = state.redraw.peak_volume
+        && state
             .page_entries
             .visible_range(state.ui.entries_area.height)
             .any(|i| i == index)
-        {
-            if let Some(play) = state
+            && let Some(play) = state
                 .entries
                 .get_play_entry_mut(&state.page_entries.get(index).unwrap())
             {
                 play.peak_volume_bar = play.peak_volume_bar.volume(play.peak);
                 play.peak_volume_bar.small_render(&mut state.ui.buffer)?;
             }
-        }
-    }
 
     match state.ui_mode {
         UIMode::Help => state.help.render(&mut state.ui.buffer)?,
@@ -191,13 +188,11 @@ fn resize(state: &mut RSState) -> Result<()> {
 
     state.context_menu.resize(state.ui.entries_area)?;
 
-    if state.ui_mode == UIMode::InputVolumeValue {
-        if let Some(ident) = &state.page_entries.get_selected() {
-            if let Some(play) = state.entries.get_play_entry(ident) {
+    if state.ui_mode == UIMode::InputVolumeValue
+        && let Some(ident) = &state.page_entries.get_selected()
+            && let Some(play) = state.entries.get_play_entry(ident) {
                 state.input_exact_volume.resize(play.area)?;
             }
-        }
-    }
 
     state.help.resize(state.ui.entries_area)?;
 

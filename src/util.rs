@@ -26,7 +26,7 @@ pub fn percent_to_volume(target_percent: i16) -> u32 {
 
 #[macro_export]
 macro_rules! unwrap_or_return {
-    ($x:expr, $y:expr) => {
+    ($x:expr_2021, $y:expr_2021) => {
         match $x {
             Some(x) => x,
             None => {
@@ -34,35 +34,35 @@ macro_rules! unwrap_or_return {
             }
         }
     };
-    ($x:expr) => {
+    ($x:expr_2021) => {
         unwrap_or_return!($x, ())
     };
 }
 
 #[macro_export]
 macro_rules! error {
-    ($($x:expr),*) => {
+    ($($x:expr_2021),*) => {
         log::error!("[{}] {}", LOGGING_MODULE, format!($($x),*));
     }
 }
 
 #[macro_export]
 macro_rules! debug {
-    ($($x:expr),*) => {
+    ($($x:expr_2021),*) => {
         log::debug!("[{}] {}", LOGGING_MODULE, format!($($x),*));
     }
 }
 
 #[macro_export]
 macro_rules! info {
-    ($($x:expr),*) => {
+    ($($x:expr_2021),*) => {
         log::info!("[{}] {}", LOGGING_MODULE, format!($($x),*));
     }
 }
 
 #[macro_export]
 macro_rules! warn {
-    ($($x:expr),*) => {
+    ($($x:expr_2021),*) => {
         log::warn!("[{}] {}", LOGGING_MODULE, format!($($x),*));
     }
 }

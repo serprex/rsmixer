@@ -27,6 +27,7 @@ pub struct RSState {
     pub input_exact_volume: VolumeInputWidget,
     pub ui: UI,
     pub ctx: Option<Ctx>,
+    pub drag_source: Option<EntryIdentifier>,
 }
 
 impl Default for RSState {
@@ -45,6 +46,7 @@ impl Default for RSState {
             input_exact_volume: VolumeInputWidget::default(),
             ui: UI::default(),
             ctx: None,
+            drag_source: None,
         }
     }
 }
@@ -65,6 +67,7 @@ impl RSState {
             },
             ui: UI::default(),
             ctx: Some(ctx),
+            drag_source: None,
         }
     }
     pub fn reset(&mut self) {
@@ -83,6 +86,17 @@ impl RSState {
     pub fn remove_entry(&mut self, ident: &EntryIdentifier) {
         self.entries.remove(ident);
 
+        if self.drag_source == Some(*ident) {
+            self.drag_source = None;
+        }
+
+        // cancel before page update, MoveEntry layout expects both to exist
+        if let UIMode::MoveEntry(moving, parent) = self.ui_mode
+            && (moving == *ident || parent == *ident)
+        {
+            self.cancel_move_entry();
+        }
+
         if self.page_entries.ident_position(*ident).is_some() {
             page_entries::update(self);
         }
@@ -93,15 +107,14 @@ impl RSState {
     }
 
     pub fn update_entry(&mut self, ident: &EntryIdentifier, mut entry: Entry) {
-        if entry.needs_redraw(&self.entries) {
-            if let Some(i) = self
+        if entry.needs_redraw(&self.entries)
+            && let Some(i) = self
                 .page_entries
                 .iter_entries()
                 .position(|id| *id == entry.entry_ident)
             {
                 self.redraw.affected_entries.insert(i);
             }
-        }
 
         entry.inherit_area(&self.entries);
 
@@ -324,16 +337,15 @@ impl RSState {
     }
 
     pub fn open_context_menu(&mut self, ident: &Option<EntryIdentifier>) {
-        if let Some(ident) = ident {
-            if let Some(index) = self.page_entries.iter_entries().position(|i| *i == *ident) {
+        if let Some(ident) = ident
+            && let Some(index) = self.page_entries.iter_entries().position(|i| *i == *ident) {
                 self.page_entries.set_selected(index);
 
                 page_entries::update(self);
             }
-        }
 
-        if self.page_entries.selected() < self.page_entries.len() {
-            if let Some(entry) = self
+        if self.page_entries.selected() < self.page_entries.len()
+            && let Some(entry) = self
                 .entries
                 .get(&self.page_entries.get(self.page_entries.selected()).unwrap())
             {
@@ -347,7 +359,6 @@ impl RSState {
 
                 self.redraw.resize = true;
             }
-        }
     }
 
     pub fn confirm_input_volume(&mut self) {
@@ -394,24 +405,65 @@ impl RSState {
                 self.change_ui_mode(UIMode::Normal);
             }
             ContextMenuEffect::MoveEntry => {
-                let (parent_type, _) = self.current_page.parent_child_types();
-                let entry_ident = selected;
-
-                if let Some(parent_id) = self.entries.get_play_entry(&entry_ident).unwrap().parent {
-                    let entry_parent = EntryIdentifier::new(parent_type, parent_id);
-                    let parent_ident = match self.entries.find(|(&i, _)| i == entry_parent) {
-                        Some((i, _)) => *i,
-                        None => EntryIdentifier::new(parent_type, 0),
-                    };
-
-                    self.change_ui_mode(UIMode::MoveEntry(entry_ident, parent_ident));
-
-                    page_entries::update(self);
-                } else {
-                    self.change_ui_mode(UIMode::Normal);
-                }
+                self.change_ui_mode(UIMode::Normal);
+                self.start_move_entry(selected);
             }
         };
+    }
+
+    fn start_move_entry(&mut self, entry_ident: EntryIdentifier) {
+        let (parent_type, _) = self.current_page.parent_child_types();
+
+        let parent_id = match self
+            .entries
+            .get_play_entry(&entry_ident)
+            .and_then(|play| play.parent)
+        {
+            Some(id) => id,
+            None => {
+                return;
+            }
+        };
+
+        let entry_parent = EntryIdentifier::new(parent_type, parent_id);
+        let parent_ident = match self.entries.find(|&(&i, _)| i == entry_parent) {
+            Some((i, _)) => *i,
+            None => EntryIdentifier::new(parent_type, 0),
+        };
+
+        self.change_ui_mode(UIMode::MoveEntry(entry_ident, parent_ident));
+
+        page_entries::update(self);
+    }
+
+    pub fn drag_to(&mut self, hover: Option<EntryIdentifier>) {
+        let source = match self.drag_source {
+            Some(source) => source,
+            None => {
+                return;
+            }
+        };
+
+        // page could've changed mid drag, source must be current page's child type
+        let (parent_type, child_type) = self.current_page.parent_child_types();
+        if self.ui_mode == UIMode::Normal && source.entry_type == child_type {
+            self.start_move_entry(source);
+        }
+
+        if let (UIMode::MoveEntry(ident, parent), Some(hover)) = (&self.ui_mode, hover)
+            && hover.entry_type == parent_type && hover != *parent {
+                let ident = *ident;
+                self.change_ui_mode(UIMode::MoveEntry(ident, hover));
+
+                page_entries::update(self);
+            }
+    }
+
+    pub fn cancel_move_entry(&mut self) {
+        self.drag_source = None;
+        self.change_ui_mode(UIMode::Normal);
+
+        page_entries::update(self);
     }
 
     pub fn hide_entry(&mut self, ident: &Option<EntryIdentifier>) {

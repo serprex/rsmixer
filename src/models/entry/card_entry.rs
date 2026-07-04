@@ -4,8 +4,6 @@ use crate::ui::Rect;
 pub struct CardProfile {
     pub name: String,
     pub description: String,
-    #[cfg(feature = "pa_v13")]
-    pub available: bool,
     pub area: Rect,
     pub is_selected: bool,
 }

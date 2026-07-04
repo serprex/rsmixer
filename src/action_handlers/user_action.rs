@@ -48,11 +48,15 @@ pub fn handle(msg: &UserAction, state: &mut RSState, ctx: &Ctx) {
                 state.open_context_menu(ident);
             }
         }
-        UserAction::CloseContextMenu => {
-            if let UIMode::ContextMenu | UIMode::Help | UIMode::InputVolumeValue = state.ui_mode {
+        UserAction::CloseContextMenu => match state.ui_mode {
+            UIMode::ContextMenu | UIMode::Help | UIMode::InputVolumeValue => {
                 state.change_ui_mode(UIMode::Normal);
             }
-        }
+            UIMode::MoveEntry(_, _) => {
+                state.cancel_move_entry();
+            }
+            _ => {}
+        },
         UserAction::Confirm => match state.ui_mode {
             UIMode::ContextMenu => {
                 state.confirm_context_menu();
@@ -74,6 +78,17 @@ pub fn handle(msg: &UserAction, state: &mut RSState, ctx: &Ctx) {
             if UIMode::Normal == state.ui_mode {
                 state.hide_entry(ident);
             }
+        }
+        UserAction::StartDrag(ident) => {
+            if UIMode::Normal == state.ui_mode {
+                state.drag_source = Some(*ident);
+            }
+        }
+        UserAction::DragTo(ident) => {
+            state.drag_to(*ident);
+        }
+        UserAction::EndDrag => {
+            state.drag_source = None;
         }
         UserAction::ShowHelp => {
             if UIMode::Normal == state.ui_mode {

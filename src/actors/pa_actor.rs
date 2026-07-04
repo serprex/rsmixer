@@ -115,11 +115,10 @@ async fn start_async(external_rx: LockedReceiver, ctx: Ctx) -> Result<()> {
             tokio::select! {
                 _ = timeout_part => {},
                 ev = event => {
-                    if let Some(x) = ev {
-                        if x.is::<Shutdown>() {
+                    if let Some(x) = ev
+                        && x.is::<Shutdown>() {
                             return Ok(());
                         }
-                    }
                 }
             };
         }

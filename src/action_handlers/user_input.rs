@@ -6,7 +6,7 @@ use crossterm::event::{Event, MouseButton, MouseEvent, MouseEventKind};
 use super::volume_input_edit;
 use crate::{
     actor_system::Ctx,
-    entry::{EntryIdentifier, EntryKind},
+    entry::{EntryIdentifier, EntryKind, EntryType},
     models::{InputEvent, PageType, RSState, UIMode, UserAction, UserInput},
     ui::{Rect, Scrollable},
     BINDINGS,
@@ -32,11 +32,10 @@ pub fn handle(input: &UserInput, state: &RSState, ctx: &Ctx) -> Result<()> {
         }
     }
 
-    if state.ui_mode == UIMode::InputVolumeValue {
-        if let Event::Key(key_event) = input.event {
+    if state.ui_mode == UIMode::InputVolumeValue
+        && let Event::Key(key_event) = input.event {
             volume_input_edit::handle(&mut actions, &key_event, state)?;
         }
-    }
 
     for action in actions {
         ctx.send_to("event_loop", action);
@@ -57,9 +56,33 @@ fn handle_unbindable_mouse_actions(
                 actions.push(UserAction::CloseContextMenu);
             }
         }
+        (UIMode::Normal, MouseEventKind::Down(MouseButton::Left)) => {
+            let (ident, _) = find_collisions(mouse_event, state);
+
+            if let Some(ident) = ident
+                && let EntryType::SinkInput | EntryType::SourceOutput = ident.entry_type {
+                    actions.push(UserAction::StartDrag(ident));
+                }
+        }
+        (UIMode::Normal, MouseEventKind::Drag(MouseButton::Left))
+        | (UIMode::MoveEntry(_, _), MouseEventKind::Drag(MouseButton::Left)) => {
+            if state.drag_source.is_some() {
+                let (ident, _) = find_collisions(mouse_event, state);
+                actions.push(UserAction::DragTo(ident));
+            }
+        }
+        (UIMode::MoveEntry(_, _), MouseEventKind::Up(MouseButton::Left)) => {
+            if state.drag_source.is_some() {
+                actions.push(UserAction::Confirm);
+                actions.push(UserAction::EndDrag);
+            }
+        }
         (UIMode::Normal, MouseEventKind::Up(MouseButton::Left)) => {
             let (ident, page_type) = find_collisions(mouse_event, state);
 
+            if state.drag_source.is_some() {
+                actions.push(UserAction::EndDrag);
+            }
             if let Some(pt) = page_type {
                 actions.push(UserAction::ChangePage(pt));
             }

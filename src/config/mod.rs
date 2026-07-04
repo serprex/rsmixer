@@ -164,15 +164,13 @@ impl RsMixerConfig {
             .iter()
             .find(|(_, v)| v.0 == UserAction::Confirm)
             .is_none()
-        {
-            if let Some((_, (_, k))) = parsed
+            && let Some((_, (_, k))) = parsed
                 .iter()
                 .find(|(_, v)| v.0 == UserAction::OpenContextMenu(None))
             {
                 self.bindings
                     .insert(k.clone(), UserAction::Confirm.to_string());
             }
-        }
 
         Ok(())
     }

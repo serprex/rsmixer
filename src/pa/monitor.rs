@@ -58,20 +58,19 @@ impl Monitors {
         ident: EntryIdentifier,
         monitor_src: Option<u32>,
     ) {
-        if let Some(count) = self.errors.get(&ident) {
-            if *count >= 5 {
+        if let Some(count) = self.errors.get(&ident)
+            && *count >= 5 {
                 self.errors.remove(&ident);
                 ACTIONS_SX
                     .get()
                     .send(EntryUpdate::EntryRemoved(ident))
                     .unwrap();
             }
-        }
         if self.monitors.contains_key(&ident) {
             return;
         }
         let (sx, rx) = cb_channel::unbounded();
-        if let Ok(stream) = create(
+        match create(
             mainloop,
             context,
             &pulse::sample::Spec {
@@ -82,7 +81,7 @@ impl Monitors {
             ident,
             monitor_src,
             rx,
-        ) {
+        ) { Ok(stream) => {
             self.monitors.insert(
                 ident,
                 Monitor {
@@ -91,9 +90,9 @@ impl Monitors {
                 },
             );
             self.errors.remove(&ident);
-        } else {
+        } _ => {
             self.error(&ident);
-        }
+        }}
     }
 
     fn error(&mut self, ident: &EntryIdentifier) {

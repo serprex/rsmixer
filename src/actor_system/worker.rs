@@ -91,6 +91,7 @@ impl Worker {
     pub fn start(mut self) -> tokio::task::JoinHandle<Result<()>> {
         let mut i_rx = self.internal_rx.take().unwrap();
         task::spawn(async move {
+            let _ = &self;
             debug!("Starting worker task");
 
             while let Some(msg) = i_rx.recv().await {

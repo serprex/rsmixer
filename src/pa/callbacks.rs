@@ -170,8 +170,6 @@ pub fn on_card_info(res: ListResult<&CardInfo>) {
                         Some(s) => s.to_string(),
                         None => n.to_string(),
                     },
-                    #[cfg(feature = "pa_v13")]
-                    available: p.available,
                 })
             })
             .collect();
@@ -199,7 +197,7 @@ pub fn on_card_info(res: ListResult<&CardInfo>) {
 
 pub fn on_sink_info(
     _sx: &mpsc::UnboundedSender<EntryIdentifier>,
-) -> impl Fn(ListResult<&SinkInfo>) {
+) -> impl Fn(ListResult<&SinkInfo>) + use<> {
     |res: ListResult<&SinkInfo>| {
         if let ListResult::Item(i) = res {
             debug!("[PADataInterface] Update {} sink info", i.index);
@@ -230,7 +228,7 @@ pub fn on_sink_info(
 
 pub fn on_sink_input_info(
     sx: &mpsc::UnboundedSender<EntryIdentifier>,
-) -> impl Fn(ListResult<&SinkInputInfo>) {
+) -> impl Fn(ListResult<&SinkInputInfo>) + use<> {
     let info_sx = sx.clone();
     move |res: ListResult<&SinkInputInfo>| {
         if let ListResult::Item(i) = res {
@@ -270,7 +268,7 @@ pub fn on_sink_input_info(
 
 pub fn on_source_info(
     _sx: &mpsc::UnboundedSender<EntryIdentifier>,
-) -> impl Fn(ListResult<&SourceInfo>) {
+) -> impl Fn(ListResult<&SourceInfo>) + use<> {
     move |res: ListResult<&SourceInfo>| {
         if let ListResult::Item(i) = res {
             debug!("[PADataInterface] Update {} source info", i.index);
@@ -301,7 +299,7 @@ pub fn on_source_info(
 
 pub fn on_source_output_info(
     sx: &mpsc::UnboundedSender<EntryIdentifier>,
-) -> impl Fn(ListResult<&SourceOutputInfo>) {
+) -> impl Fn(ListResult<&SourceOutputInfo>) + use<> {
     let info_sx = sx.clone();
     move |res: ListResult<&SourceOutputInfo>| {
         if let ListResult::Item(i) = res {

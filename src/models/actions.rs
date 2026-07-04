@@ -74,6 +74,11 @@ pub enum UserAction {
 
     Hide(Option<EntryIdentifier>),
 
+    // mouse drag of stream onto device
+    StartDrag(EntryIdentifier),
+    DragTo(Option<EntryIdentifier>),
+    EndDrag,
+
     RequestQuit,
 }
 

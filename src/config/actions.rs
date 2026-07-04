@@ -40,9 +40,11 @@ impl Display for UserAction {
             UserAction::Confirm => "confirm".to_string(),
             UserAction::Hide(_) => "hide".to_string(),
             UserAction::InputVolumeValue => "input_volume_value".to_string(),
-            UserAction::ChangeVolumeInputValue(_, _) | UserAction::SetSelected(_) => {
-                "unsupported".to_string()
-            }
+            UserAction::ChangeVolumeInputValue(_, _)
+            | UserAction::SetSelected(_)
+            | UserAction::StartDrag(_)
+            | UserAction::DragTo(_)
+            | UserAction::EndDrag => "unsupported".to_string(),
         };
         write!(f, "{}", s)
     }

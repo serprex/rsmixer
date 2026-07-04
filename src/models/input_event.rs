@@ -54,12 +54,11 @@ impl Display for InputEvent {
         let mut modifiers = self.modifiers;
         let mut kind = self.kind;
 
-        if let InputEventKind::Key(key) = kind {
-            if key == KeyCode::BackTab {
+        if let InputEventKind::Key(key) = kind
+            && key == KeyCode::BackTab {
                 kind = InputEventKind::Key(KeyCode::Tab);
                 modifiers |= KeyModifiers::SHIFT;
             }
-        }
 
         if modifiers.contains(KeyModifiers::CONTROL) {
             write!(f, "Ctrl+")?;
