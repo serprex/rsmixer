@@ -59,7 +59,7 @@ impl PlayEntry {
         self
     }
 
-    fn is_volume_visible(&self) -> bool {
+    pub fn is_volume_visible(&self) -> bool {
         let (_, w) = self.text_volume_widths();
         w > 0
     }

@@ -28,6 +28,7 @@ pub struct RSState {
     pub ui: UI,
     pub ctx: Option<Ctx>,
     pub drag_source: Option<EntryIdentifier>,
+    pub volume_drag: Option<EntryIdentifier>,
 }
 
 impl Default for RSState {
@@ -47,6 +48,7 @@ impl Default for RSState {
             ui: UI::default(),
             ctx: None,
             drag_source: None,
+            volume_drag: None,
         }
     }
 }
@@ -68,6 +70,7 @@ impl RSState {
             ui: UI::default(),
             ctx: Some(ctx),
             drag_source: None,
+            volume_drag: None,
         }
     }
     pub fn reset(&mut self) {
@@ -88,6 +91,10 @@ impl RSState {
 
         if self.drag_source == Some(*ident) {
             self.drag_source = None;
+        }
+
+        if self.volume_drag == Some(*ident) {
+            self.volume_drag = None;
         }
 
         // cancel before page update, MoveEntry layout expects both to exist

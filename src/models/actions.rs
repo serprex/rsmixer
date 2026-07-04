@@ -77,6 +77,8 @@ pub enum UserAction {
     // mouse drag of stream onto device
     StartDrag(EntryIdentifier),
     DragTo(Option<EntryIdentifier>),
+    // mouse drag on volume bar, EndDrag finishes both drag kinds
+    StartVolumeDrag(EntryIdentifier),
     EndDrag,
 
     RequestQuit,

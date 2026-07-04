@@ -44,6 +44,7 @@ impl Display for UserAction {
             | UserAction::SetSelected(_)
             | UserAction::StartDrag(_)
             | UserAction::DragTo(_)
+            | UserAction::StartVolumeDrag(_)
             | UserAction::EndDrag => "unsupported".to_string(),
         };
         write!(f, "{}", s)

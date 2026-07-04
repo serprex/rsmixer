@@ -73,7 +73,7 @@ mouse_right = ['mute']
 mouse_middle = ['hide']
 ```
 
-(left mouse click is automatically assigned to selecting entries and opening context menu when entry is already selected)
+(left mouse click is automatically assigned to selecting entries and opening context menu when entry is already selected; clicking or dragging on a volume bar sets volume)
 
 When that key/key combination gets pressed rsmixer performs an action assigned to that keybinding. [Possible actions](actions.md)
 

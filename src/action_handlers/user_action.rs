@@ -87,8 +87,14 @@ pub fn handle(msg: &UserAction, state: &mut RSState, ctx: &Ctx) {
         UserAction::DragTo(ident) => {
             state.drag_to(*ident);
         }
+        UserAction::StartVolumeDrag(ident) => {
+            if UIMode::Normal == state.ui_mode {
+                state.volume_drag = Some(*ident);
+            }
+        }
         UserAction::EndDrag => {
             state.drag_source = None;
+            state.volume_drag = None;
         }
         UserAction::ShowHelp => {
             if UIMode::Normal == state.ui_mode {

@@ -9,6 +9,7 @@ use crate::{
     entry::{EntryIdentifier, EntryKind, EntryType},
     models::{InputEvent, PageType, RSState, UIMode, UserAction, UserInput},
     ui::{Rect, Scrollable},
+    util::volume_to_percent,
     BINDINGS,
 };
 
@@ -57,16 +58,23 @@ fn handle_unbindable_mouse_actions(
             }
         }
         (UIMode::Normal, MouseEventKind::Down(MouseButton::Left)) => {
-            let (ident, _) = find_collisions(mouse_event, state);
+            if let Some(ident) = find_volume_bar(mouse_event, state) {
+                actions.push(UserAction::StartVolumeDrag(ident));
+                push_volume_drag(actions, mouse_event, ident, state);
+            } else {
+                let (ident, _) = find_collisions(mouse_event, state);
 
-            if let Some(ident) = ident
-                && let EntryType::SinkInput | EntryType::SourceOutput = ident.entry_type {
-                    actions.push(UserAction::StartDrag(ident));
-                }
+                if let Some(ident) = ident
+                    && let EntryType::SinkInput | EntryType::SourceOutput = ident.entry_type {
+                        actions.push(UserAction::StartDrag(ident));
+                    }
+            }
         }
         (UIMode::Normal, MouseEventKind::Drag(MouseButton::Left))
         | (UIMode::MoveEntry(_, _), MouseEventKind::Drag(MouseButton::Left)) => {
-            if state.drag_source.is_some() {
+            if let Some(ident) = state.volume_drag {
+                push_volume_drag(actions, mouse_event, ident, state);
+            } else if state.drag_source.is_some() {
                 let (ident, _) = find_collisions(mouse_event, state);
                 actions.push(UserAction::DragTo(ident));
             }
@@ -78,6 +86,11 @@ fn handle_unbindable_mouse_actions(
             }
         }
         (UIMode::Normal, MouseEventKind::Up(MouseButton::Left)) => {
+            if state.volume_drag.is_some() {
+                actions.push(UserAction::EndDrag);
+                return;
+            }
+
             let (ident, page_type) = find_collisions(mouse_event, state);
 
             if state.drag_source.is_some() {
@@ -142,6 +155,47 @@ fn handle_unbindable_mouse_actions(
             actions.push(UserAction::MoveDown(1));
         }
         _ => {}
+    }
+}
+
+fn find_volume_bar(mouse_event: MouseEvent, state: &RSState) -> Option<EntryIdentifier> {
+    let mouse_pos = Rect::new(mouse_event.column, mouse_event.row, 1, 1);
+
+    state
+        .page_entries
+        .visible_range(state.ui.entries_area.height)
+        .filter_map(|i| state.page_entries.get(i))
+        .find(|ident| {
+            state.entries.get_play_entry(ident).is_some_and(|play| {
+                // bar area tracks upper of 2 rendered rows
+                play.is_volume_visible() && play.volume_bar.area.h(2).intersects(&mouse_pos)
+            })
+        })
+}
+
+fn push_volume_drag(
+    actions: &mut Vec<UserAction>,
+    mouse_event: MouseEvent,
+    ident: EntryIdentifier,
+    state: &RSState,
+) {
+    let play = match state.entries.get_play_entry(&ident) {
+        Some(play) if play.is_volume_visible() => play,
+        _ => return,
+    };
+
+    let bar = play.volume_bar.area;
+    if bar.width <= 2 {
+        return;
+    }
+
+    // interior cells span bar.x+1..bar.x+width-1, full bar renders as 150%
+    let offset = mouse_event.column.saturating_sub(bar.x + 1).min(bar.width - 2);
+    let target = (offset as f32 * 150.0 / (bar.width - 2) as f32).round() as i16;
+    let delta = target - volume_to_percent(play.volume) as i16;
+
+    if delta != 0 {
+        actions.push(UserAction::RequstChangeVolume(delta, Some(ident)));
     }
 }
 
