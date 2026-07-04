@@ -18,6 +18,6 @@ use super::{Buffer, Rect};
 use crate::prelude::*;
 
 pub trait Widget {
-	fn render(&mut self, buffer: &mut Buffer) -> Result<()>;
-	fn resize(&mut self, area: Rect) -> Result<()>;
+    fn render(&mut self, buffer: &mut Buffer) -> Result<()>;
+    fn resize(&mut self, area: Rect) -> Result<()>;
 }
