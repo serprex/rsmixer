@@ -1,13 +1,16 @@
-use std::convert::TryFrom;
+use std::{
+    convert::TryFrom,
+    fmt::{self, Display},
+};
 
 use crate::{
     config::ConfigError,
     models::{PageType, UserAction},
 };
 
-impl ToString for UserAction {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for UserAction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match self {
             UserAction::RequestQuit => "exit".to_string(),
             UserAction::RequestMute(_) => "mute".to_string(),
             UserAction::ChangePage(PageType::Output) => "show_output".to_string(),
@@ -40,7 +43,8 @@ impl ToString for UserAction {
             UserAction::ChangeVolumeInputValue(_, _) | UserAction::SetSelected(_) => {
                 "unsupported".to_string()
             }
-        }
+        };
+        write!(f, "{}", s)
     }
 }
 

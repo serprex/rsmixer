@@ -36,9 +36,9 @@ impl InputEvent {
     }
 }
 
-impl TryFrom<Event> for InputEvent {
+impl TryFrom<&Event> for InputEvent {
     type Error = ConfigError;
-    fn try_from(value: Event) -> Result<Self, Self::Error> {
+    fn try_from(value: &Event) -> Result<Self, Self::Error> {
         match value {
             Event::Key(key) => Ok(InputEvent::key(key.code, key.modifiers)),
             Event::Mouse(mouse) => Ok(InputEvent::mouse(mouse.kind, mouse.modifiers)),
@@ -91,6 +91,7 @@ impl Display for InputEvent {
                 KeyCode::Esc => "Esc".to_string(),
                 KeyCode::F(i) => format!("F{}", i),
                 KeyCode::Char(c) => format!("{}", c),
+                _ => "".to_string(),
             },
             InputEventKind::Mouse(mouse) => match mouse {
                 MouseEventKind::Up(MouseButton::Left) => "MLeft".to_string(),

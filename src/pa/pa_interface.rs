@@ -1,21 +1,18 @@
 use std::ops::Deref;
 
-use lazy_static::lazy_static;
 use pulse::proplist::Proplist;
-use state::Storage;
+use state::InitCell;
 
 use super::{callbacks, common::*, pa_actions};
 
-lazy_static! {
-    pub static ref ACTIONS_SX: Storage<mpsc::UnboundedSender<EntryUpdate>> = Storage::new();
-}
+pub static ACTIONS_SX: InitCell<mpsc::UnboundedSender<EntryUpdate>> = InitCell::new();
 
 pub fn start(
     internal_rx: cb_channel::Receiver<PAInternal>,
     info_sx: mpsc::UnboundedSender<EntryIdentifier>,
     actions_sx: mpsc::UnboundedSender<EntryUpdate>,
 ) -> Result<()> {
-    (*ACTIONS_SX).set(actions_sx);
+    ACTIONS_SX.set(actions_sx);
 
     // Create new mainloop and context
     let mut proplist = Proplist::new().unwrap();

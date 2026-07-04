@@ -6,9 +6,7 @@ use crate::{
 
 pub struct PageEntries {
     pub entries: Vec<EntryIdentifier>,
-    pub last_term_h: u16,
     pub lvls: Vec<EntrySpaceLvl>,
-    pub visibility: Vec<usize>,
     selected: usize,
 }
 
@@ -16,14 +14,12 @@ impl PageEntries {
     pub fn new() -> Self {
         Self {
             entries: Vec::new(),
-            last_term_h: 0,
             lvls: Vec::new(),
-            visibility: Vec::new(),
             selected: 0,
         }
     }
 
-    pub fn iter_entries(&self) -> std::slice::Iter<EntryIdentifier> {
+    pub fn iter_entries(&self) -> std::slice::Iter<'_, EntryIdentifier> {
         self.entries.iter()
     }
 
@@ -50,9 +46,12 @@ impl PageEntries {
     pub fn set(&mut self, vs: Vec<EntryIdentifier>, parent_type: EntryType) -> bool {
         let ret = if vs.len() == self.len() {
             // check if any page entry changed identifier or level
-            vs.iter().enumerate().find(|&(i, &e)| {
-                e != self.get(i).unwrap() || calc_lvl(parent_type, &vs, i) != self.lvls[i]
-            }) != None
+            vs.iter()
+                .enumerate()
+                .find(|&(i, &e)| {
+                    e != self.get(i).unwrap() || calc_lvl(parent_type, &vs, i) != self.lvls[i]
+                })
+                .is_some()
         } else {
             true
         };

@@ -45,7 +45,7 @@ async fn start_async(external_rx: LockedReceiver, ctx: Ctx) -> Result<()> {
             Err(err) => Err(PAError::ChannelError(err).into()),
         }
     };
-    let retry_time = (*VARIABLES).get().pa_retry_time;
+    let retry_time = VARIABLES.get().pa_retry_time;
     let mut external_rx = external_rx.write().await;
 
     loop {

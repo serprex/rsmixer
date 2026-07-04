@@ -74,7 +74,7 @@ pub fn generate() -> Vec<HelpLine> {
 
     let mut volume_deltas = HashSet::new();
 
-    for (_, v) in (*BINDINGS).get().iter() {
+    for (_, v) in BINDINGS.get().iter() {
         if let UserAction::RequstChangeVolume(x, _) = v {
             volume_deltas.insert(x.abs());
         }
@@ -125,7 +125,7 @@ pub fn generate() -> Vec<HelpLine> {
             key_events: Vec::new(),
             category: category.0,
         };
-        for (k, v) in (*BINDINGS).get().iter() {
+        for (k, v) in BINDINGS.get().iter() {
             for matcher in &category.1 {
                 if matcher.is_matching(v) {
                     hl.key_events.push(k.to_string());

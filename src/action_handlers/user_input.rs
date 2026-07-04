@@ -13,10 +13,10 @@ use crate::{
 };
 
 pub fn handle(input: &UserInput, state: &RSState, ctx: &Ctx) -> Result<()> {
-    let input_event = InputEvent::try_from(input.event)?;
+    let input_event = InputEvent::try_from(&input.event)?;
     let mut actions;
 
-    if let Some(bindings) = (*BINDINGS).get().get_vec(&input_event) {
+    if let Some(bindings) = BINDINGS.get().get_vec(&input_event) {
         actions = bindings.clone();
 
         handle_conflicting_bindings(&mut actions, state);
@@ -113,10 +113,10 @@ fn handle_unbindable_mouse_actions(
                 actions.push(UserAction::MoveUp(1));
             }
         }
-        (UIMode::ContextMenu, MouseEventKind::ScrollDown) => {
-            if state.context_menu.area.intersects(&mouse_pos) {
-                actions.push(UserAction::MoveDown(1));
-            }
+        (UIMode::ContextMenu, MouseEventKind::ScrollDown)
+            if state.context_menu.area.intersects(&mouse_pos) =>
+        {
+            actions.push(UserAction::MoveDown(1));
         }
         _ => {}
     }

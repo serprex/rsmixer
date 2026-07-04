@@ -75,7 +75,7 @@ impl PageType {
         &'a self,
         entries: &'a Entries,
         ui_mode: &'a UIMode,
-    ) -> Box<dyn Iterator<Item = (&EntryIdentifier, &Entry)> + 'a> {
+    ) -> Box<dyn Iterator<Item = (&'a EntryIdentifier, &'a Entry)> + 'a> {
         if *self == PageType::Cards {
             return Box::new(entries.iter_type(EntryType::Card));
         }
@@ -103,23 +103,14 @@ impl PageType {
             );
         }
 
-        Box::new(
-            entries
-                .iter_type(parent)
-                .map(move |(ident, entry)| {
-                    std::iter::once((ident, entry)).chain(entries.iter_type(child).filter(
-                        move |(_, e)| {
-                            e.parent() == Some(ident.index)
-                                && match &e.entry_kind {
-                                    EntryKind::CardEntry(_) => true,
-                                    EntryKind::PlayEntry(play) => {
-                                        play.hidden != HiddenStatus::Hidden
-                                    }
-                                }
-                        },
-                    ))
-                })
-                .flatten(),
-        )
+        Box::new(entries.iter_type(parent).flat_map(move |(ident, entry)| {
+            std::iter::once((ident, entry)).chain(entries.iter_type(child).filter(move |(_, e)| {
+                e.parent() == Some(ident.index)
+                    && match &e.entry_kind {
+                        EntryKind::CardEntry(_) => true,
+                        EntryKind::PlayEntry(play) => play.hidden != HiddenStatus::Hidden,
+                    }
+            }))
+        }))
     }
 }

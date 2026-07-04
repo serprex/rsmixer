@@ -1,10 +1,7 @@
 use std::hash::Hash;
 
 use linked_hash_map::LinkedHashMap;
-use serde::{
-    private::de::{Content, ContentRefDeserializer},
-    Deserialize, Deserializer, Serialize, Serializer,
-};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[derive(Clone)]
 enum Element<T> {
@@ -28,13 +25,16 @@ impl<'de, T: Deserialize<'de>> Deserialize<'de> for Element<T> {
     where
         D: Deserializer<'de>,
     {
-        let content = Content::deserialize(deserializer)?;
-        if let Ok(x) = T::deserialize(ContentRefDeserializer::<D::Error>::new(&content)) {
-            Ok(Element::Single(vec![x]))
-        } else {
-            let xs = Vec::<T>::deserialize(ContentRefDeserializer::<D::Error>::new(&content))?;
-            Ok(Element::Many(xs))
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum Repr<T> {
+            Single(T),
+            Many(Vec<T>),
         }
+        Ok(match Repr::deserialize(deserializer)? {
+            Repr::Single(x) => Element::Single(vec![x]),
+            Repr::Many(xs) => Element::Many(xs),
+        })
     }
 }
 
@@ -43,9 +43,7 @@ pub struct MultiMap<K: Eq + Hash, V>(LinkedHashMap<K, Element<V>>);
 
 impl<K: Eq + Hash, V> MultiMap<K, V> {
     pub fn new() -> Self {
-        Self {
-            0: LinkedHashMap::new(),
-        }
+        Self(LinkedHashMap::new())
     }
 
     pub fn insert(&mut self, k: K, v: V) {

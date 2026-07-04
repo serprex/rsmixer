@@ -1,12 +1,9 @@
-use std::{any::Any, fmt::Debug};
+use std::any::Any;
 
 use super::actor::ActorItem;
 use crate::prelude::*;
 
 pub type BoxedMessage = Box<dyn Any + Send + Sync + 'static>;
-
-pub trait Message: Any + Send + Sync + Debug {}
-impl<T> Message for T where T: Any + Send + Sync + Debug {}
 
 pub enum SystemMessage {
     RegisterActor(ActorItem),

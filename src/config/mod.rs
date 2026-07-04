@@ -61,7 +61,7 @@ pub struct ConfigColor {
 
 impl RsMixerConfig {
     pub fn load() -> Result<Self> {
-        let config: RsMixerConfig = confy::load("rsmixer")?;
+        let config: RsMixerConfig = confy::load("rsmixer", "rsmixer")?;
         Ok(config)
     }
 
@@ -77,7 +77,7 @@ impl RsMixerConfig {
 
             if let Some(q) = &v.fg {
                 if let Some(color) = colors::str_to_color(q) {
-                    c = c.foreground(color);
+                    c.foreground_color = Some(color);
                 } else {
                     return Err(ConfigError::InvalidColor(q.clone()))
                         .context("while parsing config file");
@@ -85,7 +85,7 @@ impl RsMixerConfig {
             }
             if let Some(q) = &v.bg {
                 if let Some(color) = colors::str_to_color(q) {
-                    c = c.background(color);
+                    c.background_color = Some(color);
                 } else {
                     return Err(ConfigError::InvalidColor(q.clone()))
                         .context("while parsing config file");
@@ -94,18 +94,10 @@ impl RsMixerConfig {
             if let Some(attrs) = &v.attributes {
                 for attr in attrs {
                     match &attr[..] {
-                        "bold" => {
-                            c = c.attribute(Attribute::Bold);
-                        }
-                        "underlined" => {
-                            c = c.attribute(Attribute::Underlined);
-                        }
-                        "italic" => {
-                            c = c.attribute(Attribute::Italic);
-                        }
-                        "dim" => {
-                            c = c.attribute(Attribute::Dim);
-                        }
+                        "bold" => c.attributes.set(Attribute::Bold),
+                        "underlined" => c.attributes.set(Attribute::Underlined),
+                        "italic" => c.attributes.set(Attribute::Italic),
+                        "dim" => c.attributes.set(Attribute::Dim),
                         _ => {}
                     };
                 }
@@ -115,7 +107,7 @@ impl RsMixerConfig {
 
         self.version = Some(String::from(VERSION));
 
-        confy::store("rsmixer", self.clone())?;
+        confy::store("rsmixer", "rsmixer", self.clone())?;
 
         Ok((styles, bindings, Variables::new(self)))
     }
@@ -126,7 +118,7 @@ impl RsMixerConfig {
         for (k, cs) in self.bindings.iter_vecs() {
             for c in cs {
                 bindings.insert(
-                    keys_mouse::try_string_to_event(&k)?,
+                    keys_mouse::try_string_to_event(k)?,
                     UserAction::try_from(c.clone())?,
                 );
             }
@@ -162,7 +154,7 @@ impl RsMixerConfig {
         for (k, cs) in self.bindings.iter_vecs() {
             for c in cs {
                 parsed.insert(
-                    keys_mouse::try_string_to_event(&k)?,
+                    keys_mouse::try_string_to_event(k)?,
                     (UserAction::try_from(c.clone())?, k.clone()),
                 );
             }
@@ -170,12 +162,12 @@ impl RsMixerConfig {
 
         if parsed
             .iter()
-            .find(|(_, v)| (**v).0 == UserAction::Confirm)
+            .find(|(_, v)| v.0 == UserAction::Confirm)
             .is_none()
         {
             if let Some((_, (_, k))) = parsed
                 .iter()
-                .find(|(_, v)| (**v).0 == UserAction::OpenContextMenu(None))
+                .find(|(_, v)| v.0 == UserAction::OpenContextMenu(None))
             {
                 self.bindings
                     .insert(k.clone(), UserAction::Confirm.to_string());

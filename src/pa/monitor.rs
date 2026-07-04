@@ -10,18 +10,10 @@ pub struct Monitor {
     exit_sender: cb_channel::Sender<u32>,
 }
 
+#[derive(Default)]
 pub struct Monitors {
     monitors: HashMap<EntryIdentifier, Monitor>,
     errors: HashMap<EntryIdentifier, usize>,
-}
-
-impl Default for Monitors {
-    fn default() -> Self {
-        Self {
-            monitors: HashMap::new(),
-            errors: HashMap::new(),
-        }
-    }
 }
 
 impl Monitors {
@@ -45,7 +37,7 @@ impl Monitors {
                 _ => {}
             };
 
-            if targets.get(ident) == None {
+            if targets.get(ident).is_none() {
                 let _ = monitor.exit_sender.send(0);
             }
 
@@ -53,7 +45,7 @@ impl Monitors {
         });
 
         targets.iter().for_each(|(ident, monitor_src)| {
-            if self.monitors.get(ident).is_none() {
+            if !self.monitors.contains_key(ident) {
                 self.create_monitor(mainloop, context, *ident, *monitor_src);
             }
         });
@@ -69,7 +61,7 @@ impl Monitors {
         if let Some(count) = self.errors.get(&ident) {
             if *count >= 5 {
                 self.errors.remove(&ident);
-                (*ACTIONS_SX)
+                ACTIONS_SX
                     .get()
                     .send(EntryUpdate::EntryRemoved(ident))
                     .unwrap();
@@ -80,12 +72,12 @@ impl Monitors {
         }
         let (sx, rx) = cb_channel::unbounded();
         if let Ok(stream) = create(
-            &mainloop,
-            &context,
+            mainloop,
+            context,
             &pulse::sample::Spec {
                 format: pulse::sample::Format::FLOAT32NE,
                 channels: 1,
-                rate: (*VARIABLES).get().pa_rate,
+                rate: VARIABLES.get().pa_rate,
             },
             ident,
             monitor_src,
@@ -105,7 +97,7 @@ impl Monitors {
     }
 
     fn error(&mut self, ident: &EntryIdentifier) {
-        let count = match self.errors.get(&ident) {
+        let count = match self.errors.get(ident) {
             Some(x) => *x,
             None => 0,
         };
@@ -146,7 +138,7 @@ fn create(
     // Stream state change callback
     {
         debug!("[PADataInterface] Registering stream state change callback");
-        let ml_ref = Rc::clone(&p_mainloop);
+        let ml_ref = Rc::clone(p_mainloop);
         let stream_ref = Rc::downgrade(&stream);
         stream
             .borrow_mut()
@@ -179,11 +171,11 @@ fn create(
     match stream.borrow_mut().connect_record(
         s,
         Some(&pulse::def::BufferAttr {
-            maxlength: std::u32::MAX,
-            tlength: std::u32::MAX,
-            prebuf: std::u32::MAX,
+            maxlength: u32::MAX,
+            tlength: u32::MAX,
+            prebuf: u32::MAX,
             minreq: 0,
-            fragsize: (*VARIABLES).get().pa_frag_size,
+            fragsize: VARIABLES.get().pa_frag_size,
         }),
         pulse::stream::FlagSet::PEAK_DETECT | pulse::stream::FlagSet::ADJUST_LATENCY,
     ) {
@@ -214,7 +206,7 @@ fn create(
 
     {
         info!("[PADataInterface] Registering stream read callback");
-        let ml_ref = Rc::clone(&p_mainloop);
+        let ml_ref = Rc::clone(p_mainloop);
         let stream_ref = Rc::downgrade(&stream);
         stream.borrow_mut().set_read_callback(Some(Box::new(move |_size: usize| {
             let remove_failed = || {
@@ -250,9 +242,9 @@ fn create(
                                     let data_slice = slice_to_4_bytes(&data[c * 4 .. (c + 1) * 4]);
                                     peak += f32::from_ne_bytes(data_slice).abs();
                                 }
-                                peak = peak / count as f32;
+                                peak /= count as f32;
 
-                                if (*ACTIONS_SX).get().send(EntryUpdate::PeakVolumeUpdate(ident, peak)).is_err() {
+                                if ACTIONS_SX.get().send(EntryUpdate::PeakVolumeUpdate(ident, peak)).is_err() {
                                     disconnect_stream();
                                 }
 

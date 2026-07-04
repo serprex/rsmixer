@@ -29,7 +29,7 @@ impl ResizeScreen {
 pub enum EntryUpdate {
     // entry updates
     EntryRemoved(EntryIdentifier),
-    EntryUpdate(EntryIdentifier, Box<Entry>),
+    Update(EntryIdentifier, Box<Entry>),
     PeakVolumeUpdate(EntryIdentifier, f32),
 }
 

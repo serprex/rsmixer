@@ -48,7 +48,7 @@ impl Pixels {
 
 impl From<Vec<Pixel>> for Pixels {
     fn from(s: Vec<Pixel>) -> Self {
-        Self { 0: s }
+        Self(s)
     }
 }
 impl From<Pixels> for Vec<Pixel> {
@@ -57,24 +57,13 @@ impl From<Pixels> for Vec<Pixel> {
     }
 }
 
+#[derive(Default)]
 pub struct Buffer {
     pub width: u16,
     pub height: u16,
     pixels: Vec<Pixel>,
     changes: BTreeMap<usize, Pixel>,
     pub styles: HashMap<Style, ContentStyle>,
-}
-
-impl Default for Buffer {
-    fn default() -> Self {
-        Self {
-            width: 0,
-            height: 0,
-            pixels: Vec::new(),
-            changes: BTreeMap::new(),
-            styles: HashMap::new(),
-        }
-    }
 }
 
 impl Buffer {
@@ -88,7 +77,7 @@ impl Buffer {
         self.pixels = (0..width * height).map(|_| Pixel::default()).collect();
     }
 
-    pub fn draw_changes<W: Write>(&mut self, stdout: &mut W) -> Result<(), crossterm::ErrorKind> {
+    pub fn draw_changes<W: Write>(&mut self, stdout: &mut W) -> Result<(), std::io::Error> {
         let mut last_style = None;
         let mut last_coord = None;
         let mut text = "".to_string();

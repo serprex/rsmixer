@@ -35,7 +35,7 @@ impl EventfulActor for EventLoopActor {
     async fn start(&mut self, ctx: Ctx) {
         self.stdout = Some(ui::prepare_terminal().unwrap());
         self.state = RSState::new(ctx.clone());
-        self.state.ui.buffer.set_styles((*STYLES).get().clone());
+        self.state.ui.buffer.set_styles(STYLES.get().clone());
         self.state.redraw.resize = true;
 
         ctx.send_to("pulseaudio", PulseAudioAction::RequestPulseAudioState);
@@ -54,19 +54,19 @@ impl EventfulActor for EventLoopActor {
             if msg.is::<EntryUpdate>() {
                 let msg = msg.downcast_ref::<EntryUpdate>().unwrap();
 
-                pulseaudio_info::handle(&msg, &mut self.state);
+                pulseaudio_info::handle(msg, &mut self.state);
             } else if msg.is::<PAStatus>() {
                 let msg = msg.downcast_ref::<PAStatus>().unwrap();
 
-                pulseaudio_status::handle(&msg, &mut self.state);
+                pulseaudio_status::handle(msg, &mut self.state);
             } else if msg.is::<UserInput>() {
                 let msg = msg.downcast_ref::<UserInput>().unwrap();
 
-                user_input::handle(&msg, &self.state, &ctx)?;
+                user_input::handle(msg, &self.state, &ctx)?;
             } else if msg.is::<UserAction>() {
                 let msg = msg.downcast_ref::<UserAction>().unwrap();
 
-                user_action::handle(&msg, &mut self.state, &ctx);
+                user_action::handle(msg, &mut self.state, &ctx);
             } else if msg.is::<ResizeScreen>() {
                 self.state.redraw.resize = true;
             }

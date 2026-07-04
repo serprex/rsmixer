@@ -64,7 +64,6 @@ pub struct ContextMenu {
     selected: usize,
     pub horizontal_scroll: usize,
     pub area: Rect,
-    pub entry_ident: EntryIdentifier,
     pub tool_window: ToolWindowWidget,
 }
 
@@ -110,7 +109,6 @@ impl ContextMenu {
             horizontal_scroll: 0,
             area: Rect::default(),
             tool_window: ToolWindowWidget::default(),
-            entry_ident: EntryIdentifier::new(entry.entry_type, entry.index),
         }
     }
 
@@ -173,7 +171,6 @@ impl Default for ContextMenu {
             horizontal_scroll: 0,
             area: Rect::default(),
             tool_window: ToolWindowWidget::default(),
-            entry_ident: EntryIdentifier::new(EntryType::Sink, 0),
         }
     }
 }

@@ -61,7 +61,7 @@ pub fn subscribe(
                     }
                     Some(Operation::Removed) => {
                         info!("[PAInterface] {:?} removed", entry_type);
-                        (*ACTIONS_SX)
+                        ACTIONS_SX
                             .get()
                             .send(EntryUpdate::EntryRemoved(EntryIdentifier::new(
                                 entry_type, index,
@@ -154,13 +154,10 @@ pub fn request_info(
 }
 pub fn on_card_info(res: ListResult<&CardInfo>) {
     if let ListResult::Item(i) = res {
-        let n = match i
+        let n = i
             .proplist
             .get_str(pulse::proplist::properties::DEVICE_DESCRIPTION)
-        {
-            Some(s) => s,
-            None => String::from(""),
-        };
+            .unwrap_or_default();
         let profiles: Vec<CardProfile> = i
             .profiles
             .iter()
@@ -173,7 +170,7 @@ pub fn on_card_info(res: ListResult<&CardInfo>) {
                         Some(s) => s.to_string(),
                         None => n.to_string(),
                     },
-                    #[cfg(any(feature = "pa_v13"))]
+                    #[cfg(feature = "pa_v13")]
                     available: p.available,
                 })
             })
@@ -193,9 +190,9 @@ pub fn on_card_info(res: ListResult<&CardInfo>) {
         let ident = EntryIdentifier::new(EntryType::Card, i.index);
         let entry = Entry::new_card_entry(i.index, n, profiles, selected_profile);
 
-        (*ACTIONS_SX)
+        ACTIONS_SX
             .get()
-            .send(EntryUpdate::EntryUpdate(ident, Box::new(entry)))
+            .send(EntryUpdate::Update(ident, Box::new(entry)))
             .unwrap();
     }
 }
@@ -223,9 +220,9 @@ pub fn on_sink_info(
                 i.state == SinkState::Suspended,
             );
 
-            (*ACTIONS_SX)
+            ACTIONS_SX
                 .get()
-                .send(EntryUpdate::EntryUpdate(ident, Box::new(entry)))
+                .send(EntryUpdate::Update(ident, Box::new(entry)))
                 .unwrap();
         }
     }
@@ -262,9 +259,9 @@ pub fn on_sink_input_info(
                 false,
             );
 
-            (*ACTIONS_SX)
+            ACTIONS_SX
                 .get()
-                .send(EntryUpdate::EntryUpdate(ident, Box::new(entry)))
+                .send(EntryUpdate::Update(ident, Box::new(entry)))
                 .unwrap();
             let _ = info_sx.send(EntryIdentifier::new(EntryType::Sink, i.sink));
         }
@@ -294,9 +291,9 @@ pub fn on_source_info(
                 i.state == SourceState::Suspended,
             );
 
-            (*ACTIONS_SX)
+            ACTIONS_SX
                 .get()
-                .send(EntryUpdate::EntryUpdate(ident, Box::new(entry)))
+                .send(EntryUpdate::Update(ident, Box::new(entry)))
                 .unwrap();
         }
     }
@@ -309,13 +306,10 @@ pub fn on_source_output_info(
     move |res: ListResult<&SourceOutputInfo>| {
         if let ListResult::Item(i) = res {
             debug!("[PADataInterface] Update {} source output info", i.index);
-            let n = match i
+            let n = i
                 .proplist
                 .get_str(pulse::proplist::properties::APPLICATION_NAME)
-            {
-                Some(s) => s,
-                None => String::from(""),
-            };
+                .unwrap_or_default();
             if n == "RsMixerContext" {
                 return;
             }
@@ -332,9 +326,9 @@ pub fn on_source_output_info(
                 false,
             );
 
-            (*ACTIONS_SX)
+            ACTIONS_SX
                 .get()
-                .send(EntryUpdate::EntryUpdate(ident, Box::new(entry)))
+                .send(EntryUpdate::Update(ident, Box::new(entry)))
                 .unwrap();
             let _ = info_sx.send(EntryIdentifier::new(EntryType::Source, i.index));
         }
