@@ -1,7 +1,7 @@
 use super::{callbacks, common::*};
 
 pub fn handle_command(
-    cmd: PulseAudioAction,
+    cmd: &PulseAudioAction,
     context: &Rc<RefCell<PAContext>>,
     info_sx: &mpsc::UnboundedSender<EntryIdentifier>,
 ) -> Option<()> {
@@ -10,22 +10,22 @@ pub fn handle_command(
             callbacks::request_current_state(Rc::clone(context), info_sx.clone()).unwrap();
         }
         PulseAudioAction::MuteEntry(ident, mute) => {
-            set_mute(ident, mute, context);
+            set_mute(*ident, *mute, context);
         }
         PulseAudioAction::MoveEntryToParent(ident, parent) => {
-            move_entry_to_parent(ident, parent, context, info_sx.clone());
+            move_entry_to_parent(*ident, *parent, context, info_sx.clone());
         }
         PulseAudioAction::ChangeCardProfile(ident, profile) => {
-            change_card_profile(ident, profile, context);
+            change_card_profile(*ident, profile, context);
         }
         PulseAudioAction::SetVolume(ident, vol) => {
-            set_volume(ident, vol, context);
+            set_volume(*ident, vol, context);
         }
         PulseAudioAction::SetSuspend(ident, suspend) => {
-            set_suspend(ident, suspend, context);
+            set_suspend(*ident, *suspend, context);
         }
         PulseAudioAction::KillEntry(ident) => {
-            kill_entry(ident, context);
+            kill_entry(*ident, context);
         }
         PulseAudioAction::Shutdown => {
             //@TODO disconnect monitors
@@ -38,35 +38,35 @@ pub fn handle_command(
 
 fn set_volume(
     ident: EntryIdentifier,
-    vol: pulse::volume::ChannelVolumes,
+    vol: &pulse::volume::ChannelVolumes,
     context: &Rc<RefCell<PAContext>>,
 ) {
     let mut introspector = context.borrow_mut().introspect();
     match ident.entry_type {
         EntryType::Sink => {
-            introspector.set_sink_volume_by_index(ident.index, &vol, None);
+            introspector.set_sink_volume_by_index(ident.index, vol, None);
         }
         EntryType::SinkInput => {
-            introspector.set_sink_input_volume(ident.index, &vol, None);
+            introspector.set_sink_input_volume(ident.index, vol, None);
         }
         EntryType::Source => {
-            introspector.set_source_volume_by_index(ident.index, &vol, None);
+            introspector.set_source_volume_by_index(ident.index, vol, None);
         }
         EntryType::SourceOutput => {
-            introspector.set_source_output_volume(ident.index, &vol, None);
+            introspector.set_source_output_volume(ident.index, vol, None);
         }
         _ => {}
     };
 }
 
-fn change_card_profile(ident: EntryIdentifier, profile: String, context: &Rc<RefCell<PAContext>>) {
+fn change_card_profile(ident: EntryIdentifier, profile: &str, context: &Rc<RefCell<PAContext>>) {
     if ident.entry_type != EntryType::Card {
         return;
     }
     context
         .borrow_mut()
         .introspect()
-        .set_card_profile_by_index(ident.index, &profile[..], None);
+        .set_card_profile_by_index(ident.index, profile, None);
 }
 
 fn move_entry_to_parent(

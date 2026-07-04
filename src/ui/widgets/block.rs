@@ -79,11 +79,11 @@ impl Widget for BlockWidget {
             }
         } else {
             for i in 1..(self.area.height - 1) {
-                buffer.string(self.area.x, self.area.y + i, "│".to_string(), Style::Normal);
+                buffer.string(self.area.x, self.area.y + i, "│", Style::Normal);
                 buffer.string(
                     self.area.x + self.area.width - 1,
                     self.area.y + i,
-                    "│".to_string(),
+                    "│",
                     Style::Normal,
                 );
             }
@@ -94,7 +94,7 @@ impl Widget for BlockWidget {
         buffer.string(
             self.area.x,
             self.area.y + self.area.height - 1,
-            bottom_border,
+            &bottom_border,
             Style::Normal,
         );
 

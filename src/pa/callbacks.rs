@@ -88,9 +88,7 @@ pub fn request_current_state(
     let info_sx = info_sxx.clone();
     introspector.get_sink_info_list(move |x: ListResult<&SinkInfo>| {
         if let ListResult::Item(e) = x {
-            let _ = info_sx
-                .clone()
-                .send(EntryIdentifier::new(EntryType::Sink, e.index));
+            let _ = info_sx.send(EntryIdentifier::new(EntryType::Sink, e.index));
         }
     });
 
@@ -162,7 +160,7 @@ pub fn on_card_info(res: ListResult<&CardInfo>) {
             .profiles
             .iter()
             .filter_map(|p| {
-                p.name.clone().map(|n| CardProfile {
+                p.name.as_ref().map(|n| CardProfile {
                     area: Rect::default(),
                     is_selected: false,
                     name: n.to_string(),

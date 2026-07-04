@@ -137,14 +137,14 @@ pub fn start(
             }
             PAInternal::Command(cmd) => {
                 let cmd = cmd.deref();
-                if pa_actions::handle_command(cmd.clone(), &context, &info_sx).is_none() {
+                if pa_actions::handle_command(cmd, &context, &info_sx).is_none() {
                     monitors.filter(&mainloop, &context, &HashMap::new());
                     mainloop.borrow_mut().unlock();
                     break;
                 }
 
-                if let PulseAudioAction::CreateMonitors(mons) = cmd.clone() {
-                    last_targets = mons;
+                if let PulseAudioAction::CreateMonitors(mons) = cmd {
+                    last_targets = mons.clone();
                     monitors.filter(&mainloop, &context, &last_targets);
                 }
             }

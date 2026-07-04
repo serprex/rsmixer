@@ -109,7 +109,7 @@ impl Buffer {
                 text = v.text.unwrap_or(' ').to_string();
                 last_style = Some(v.style);
             } else {
-                text = format!("{}{}", text, v.text.unwrap_or(' '));
+                text.push(v.text.unwrap_or(' '));
             }
 
             last_coord = Some(*k);
@@ -144,11 +144,11 @@ impl Buffer {
     pub fn rect(&mut self, rect: Rect, text: char, style: Style) {
         let text: String = (0..rect.width).map(|_| text).collect();
         for y in 0..rect.height {
-            self.string(rect.x, rect.y + y, text.clone(), style);
+            self.string(rect.x, rect.y + y, &text, style);
         }
     }
 
-    pub fn string(&mut self, x: u16, y: u16, text: String, style: Style) {
+    pub fn string(&mut self, x: u16, y: u16, text: &str, style: Style) {
         let coord = self.xy_to_coord(x, y);
 
         for (i, c) in text.chars().enumerate() {

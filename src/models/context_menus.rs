@@ -8,7 +8,6 @@ use crate::{
 
 #[derive(PartialEq, Clone)]
 pub enum ContextMenuOption {
-    MoveToEntry(EntryIdentifier, String),
     ChangeCardProfile(String, String),
     Kill,
     Move,
@@ -18,17 +17,16 @@ pub enum ContextMenuOption {
     InputExactVolume,
 }
 
-impl From<ContextMenuOption> for String {
-    fn from(option: ContextMenuOption) -> Self {
-        match option {
-            ContextMenuOption::MoveToEntry(_, s) => s,
+impl ContextMenuOption {
+    pub fn as_str(&self) -> &str {
+        match self {
             ContextMenuOption::ChangeCardProfile(_, s) => s,
-            ContextMenuOption::Kill => "Kill".into(),
-            ContextMenuOption::Move => "Move".into(),
-            ContextMenuOption::Suspend => "Suspend".into(),
-            ContextMenuOption::Resume => "Resume".into(),
-            ContextMenuOption::SetAsDefault => "Set as default".into(),
-            ContextMenuOption::InputExactVolume => "Input exact volume value".into(),
+            ContextMenuOption::Kill => "Kill",
+            ContextMenuOption::Move => "Move",
+            ContextMenuOption::Suspend => "Suspend",
+            ContextMenuOption::Resume => "Resume",
+            ContextMenuOption::SetAsDefault => "Set as default",
+            ContextMenuOption::InputExactVolume => "Input exact volume value",
         }
     }
 }
@@ -120,12 +118,6 @@ impl ContextMenu {
             ContextMenuOption::InputExactVolume => {
                 ctx.send_to("event_loop", UserAction::InputVolumeValue);
             }
-            ContextMenuOption::MoveToEntry(entry, _) => {
-                ctx.send_to(
-                    "pulseaudio",
-                    PulseAudioAction::MoveEntryToParent(ident, *entry),
-                );
-            }
             ContextMenuOption::ChangeCardProfile(name, _) => {
                 ctx.send_to(
                     "pulseaudio",
@@ -154,7 +146,7 @@ impl ContextMenu {
             .iter()
             .skip(start)
             .take(end - start)
-            .map(|o| String::from(o.clone()).len())
+            .map(|o| o.as_str().len())
             .max();
 
         match longest {

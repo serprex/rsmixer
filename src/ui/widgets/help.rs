@@ -105,7 +105,7 @@ impl Widget for HelpWidget {
             buffer.string(
                 self.window.area.x + self.window.padding.0,
                 self.window.area.y + self.window.padding.1 + i as u16,
-                l.clone(),
+                l,
                 if start + i == self.selected() {
                     Style::Bold
                 } else {
@@ -123,18 +123,13 @@ impl Widget for HelpWidget {
                 self.window.area.height - self.window.padding.1 * 2,
             );
             if first != 0 {
-                buffer.string(
-                    area.x + area.width / 2,
-                    area.y + 2,
-                    "▲".to_string(),
-                    Style::Normal,
-                );
+                buffer.string(area.x + area.width / 2, area.y + 2, "▲", Style::Normal);
             }
             if last != self.len() {
                 buffer.string(
                     area.x + area.width / 2,
                     area.y + area.height - 2,
-                    "▲".to_string(),
+                    "▲",
                     Style::Normal,
                 );
             }

@@ -20,7 +20,7 @@ impl Widget for WarningTextWidget {
             ' ',
             Style::Normal,
         );
-        buffer.string(0, 0, self.text.clone(), Style::Normal);
+        buffer.string(0, 0, &self.text, Style::Normal);
 
         Ok(())
     }

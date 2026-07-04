@@ -51,18 +51,18 @@ impl Display for UserAction {
     }
 }
 
-impl TryFrom<String> for UserAction {
+impl TryFrom<&str> for UserAction {
     type Error = ConfigError;
 
-    fn try_from(st: String) -> Result<UserAction, Self::Error> {
-        let mut s = &st[..];
+    fn try_from(st: &str) -> Result<UserAction, Self::Error> {
+        let mut s = st;
         let mut a = String::new();
 
         if let Some(lparen) = st.chars().position(|c| c == '(') {
             let rparen = match st.chars().position(|c| c == ')') {
                 Some(r) => r,
                 None => {
-                    return Err(ConfigError::ActionBindingError(st.clone()));
+                    return Err(ConfigError::ActionBindingError(st.to_string()));
                 }
             };
             a = st
@@ -85,7 +85,7 @@ impl TryFrom<String> for UserAction {
                 let a = match a.parse::<i16>() {
                     Ok(x) => x,
                     Err(_) => {
-                        return Err(ConfigError::ActionBindingError(st.clone()));
+                        return Err(ConfigError::ActionBindingError(st.to_string()));
                     }
                 };
                 UserAction::RequstChangeVolume(-a, None)
@@ -94,7 +94,7 @@ impl TryFrom<String> for UserAction {
                 let a = match a.parse::<i16>() {
                     Ok(x) => x,
                     Err(_) => {
-                        return Err(ConfigError::ActionBindingError(st.clone()));
+                        return Err(ConfigError::ActionBindingError(st.to_string()));
                     }
                 };
                 UserAction::RequstChangeVolume(a, None)
@@ -103,7 +103,7 @@ impl TryFrom<String> for UserAction {
                 let a = match a.parse::<u16>() {
                     Ok(x) => x,
                     Err(_) => {
-                        return Err(ConfigError::ActionBindingError(st.clone()));
+                        return Err(ConfigError::ActionBindingError(st.to_string()));
                     }
                 };
                 UserAction::MoveUp(a)
@@ -112,7 +112,7 @@ impl TryFrom<String> for UserAction {
                 let a = match a.parse::<u16>() {
                     Ok(x) => x,
                     Err(_) => {
-                        return Err(ConfigError::ActionBindingError(st.clone()));
+                        return Err(ConfigError::ActionBindingError(st.to_string()));
                     }
                 };
                 UserAction::MoveDown(a)
@@ -126,7 +126,7 @@ impl TryFrom<String> for UserAction {
             "confirm" => UserAction::Confirm,
             "hide" => UserAction::Hide(None),
             _ => {
-                return Err(ConfigError::ActionBindingError(st.clone()));
+                return Err(ConfigError::ActionBindingError(st.to_string()));
             }
         };
         Ok(x)

@@ -1,4 +1,7 @@
-use std::{collections::HashSet, mem::discriminant};
+use std::{
+    collections::HashSet,
+    mem::{discriminant, replace},
+};
 
 use crate::{
     models::{PageType, UserAction},
@@ -34,8 +37,7 @@ impl HelpLine {
         w -= self.category.len() as u16;
         self.key_events.iter().for_each(|ke| {
             if cur.len() + ke.len() + 1 > w as usize {
-                v.push(cur.clone());
-                cur = format!("{} ", ke);
+                v.push(replace(&mut cur, format!("{} ", ke)));
             } else {
                 cur = format!("{}{} ", cur, ke);
             }

@@ -44,11 +44,11 @@ pub fn handle(actions: &mut Vec<UserAction>, input: &KeyEvent, state: &RSState) 
 }
 
 fn remove_char(state: &RSState) -> (String, u8) {
-    let value = state.input_exact_volume.value.clone();
+    let value = &state.input_exact_volume.value;
     let cursor = state.input_exact_volume.cursor as usize;
 
     if cursor == 0 {
-        (value, cursor as u8)
+        (value.clone(), cursor as u8)
     } else {
         let value = format!("{}{}", &value[0..(cursor - 1)], &value[cursor..]);
 
@@ -68,11 +68,11 @@ fn move_cursor(state: &RSState, val: i8) -> (String, u8) {
 }
 
 fn add_char(c: char, state: &RSState) -> (String, u8) {
-    let value = state.input_exact_volume.value.clone();
+    let value = &state.input_exact_volume.value;
     let cursor = state.input_exact_volume.cursor as usize;
 
     if value.len() == 3 {
-        (value, cursor as u8)
+        (value.clone(), cursor as u8)
     } else {
         let value = format!("{}{}{}", &value[0..cursor], c, &value[cursor..]);
 

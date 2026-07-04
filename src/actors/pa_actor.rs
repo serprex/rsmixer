@@ -75,16 +75,18 @@ async fn start_async(external_rx: LockedReceiver, ctx: Ctx) -> Result<()> {
             tokio::select! {
                 r = res => {
                     if let Some(cmd) = r {
-                        if cmd.is::<PulseAudioAction>() {
-                            if let Some(cmd) = cmd.downcast_ref::<PulseAudioAction>() {
-                                internal_sx.send(PAInternal::Command(Box::new(cmd.clone())))?;
+                        match cmd.downcast::<PulseAudioAction>() {
+                            Ok(cmd) => {
+                                internal_sx.send(PAInternal::Command(cmd))?;
+                                continue;
                             }
-                            continue;
-                        }
-                        if cmd.downcast_ref::<Shutdown>().is_some() {
-                            internal_sx.send(PAInternal::Command(Box::new(PulseAudioAction::Shutdown)))?;
-                            sync_pa.await.unwrap();
-                            return Ok(());
+                            Err(cmd) => {
+                                if cmd.downcast_ref::<Shutdown>().is_some() {
+                                    internal_sx.send(PAInternal::Command(Box::new(PulseAudioAction::Shutdown)))?;
+                                    sync_pa.await.unwrap();
+                                    return Ok(());
+                                }
+                            }
                         }
                     }
                 }

@@ -107,7 +107,7 @@ impl RsMixerConfig {
 
         self.version = Some(String::from(VERSION));
 
-        confy::store("rsmixer", "rsmixer", self.clone())?;
+        confy::store("rsmixer", "rsmixer", &*self)?;
 
         Ok((styles, bindings, Variables::new(self)))
     }
@@ -119,7 +119,7 @@ impl RsMixerConfig {
             for c in cs {
                 bindings.insert(
                     keys_mouse::try_string_to_event(k)?,
-                    UserAction::try_from(c.clone())?,
+                    UserAction::try_from(c.as_str())?,
                 );
             }
         }
@@ -130,11 +130,7 @@ impl RsMixerConfig {
     fn compatibility_layer(&mut self) -> Result<()> {
         let current_ver = Version::parse(VERSION)?;
 
-        let config_ver = match &self.version {
-            Some(v) => v.clone(),
-            None => "0.0.0".to_string(),
-        };
-        let config_ver = Version::parse(&config_ver)?;
+        let config_ver = Version::parse(self.version.as_deref().unwrap_or("0.0.0"))?;
 
         if config_ver >= current_ver {
             return Ok(());
@@ -155,7 +151,7 @@ impl RsMixerConfig {
             for c in cs {
                 parsed.insert(
                     keys_mouse::try_string_to_event(k)?,
-                    (UserAction::try_from(c.clone())?, k.clone()),
+                    (UserAction::try_from(c.as_str())?, k.clone()),
                 );
             }
         }

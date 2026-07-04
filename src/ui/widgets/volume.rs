@@ -146,12 +146,7 @@ impl VolumeWidgetBorder {
             _ => "",
         };
 
-        buffer.string(area.x, area.y, ch1.to_string(), Style::Normal);
-        buffer.string(
-            area.x + area.width - 1,
-            area.y,
-            ch2.to_string(),
-            Style::Normal,
-        );
+        buffer.string(area.x, area.y, ch1, Style::Normal);
+        buffer.string(area.x + area.width - 1, area.y, ch2, Style::Normal);
     }
 }

@@ -35,7 +35,7 @@ impl Widget for VolumeInputWidget {
         buffer.string(
             self.window.area.x + 3 - self.value.len() as u16 / 2,
             self.window.area.y + 1,
-            self.value.clone(),
+            &self.value,
             Style::Normal,
         );
 

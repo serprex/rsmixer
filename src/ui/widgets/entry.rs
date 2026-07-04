@@ -112,12 +112,7 @@ impl Widget for CardEntry {
 
         let name_len = min(self.name.len(), (self.area.width / 2).into());
 
-        buffer.string(
-            self.area.x,
-            self.area.y,
-            self.name[0..name_len].to_string(),
-            name_style,
-        );
+        buffer.string(self.area.x, self.area.y, &self.name[0..name_len], name_style);
 
         if let Some(index) = self.selected_profile {
             let profile_len = min(
@@ -128,7 +123,7 @@ impl Widget for CardEntry {
             buffer.string(
                 self.area.x + self.area.width - profile_len as u16,
                 self.area.y,
-                self.profiles[index].description[0..profile_len].to_string(),
+                &self.profiles[index].description[0..profile_len],
                 style,
             );
         }
@@ -197,7 +192,7 @@ impl Widget for PlayEntry {
             })
             .collect::<String>();
 
-        buffer.string(text_area.x, text_area.y, short_name, name_style);
+        buffer.string(text_area.x, text_area.y, &short_name, name_style);
 
         let avg = self.volume.avg().0;
         let base_delta = (volume::Volume::NORMAL.0 as f32 - volume::Volume::MUTED.0 as f32) / 100.0;
@@ -222,19 +217,13 @@ impl Widget for PlayEntry {
             self.volume_bar.area = self.volume_bar.area.y(volume_area.y);
 
             if self.is_selected {
-                let c = "-".to_string();
-                buffer.string(volume_area.x - 1, volume_area.y, c.clone(), style);
-                buffer.string(volume_area.x - 1, volume_area.y + 1, c.clone(), style);
-                buffer.string(
-                    volume_area.x + volume_area.width,
-                    volume_area.y,
-                    c.clone(),
-                    style,
-                );
+                buffer.string(volume_area.x - 1, volume_area.y, "-", style);
+                buffer.string(volume_area.x - 1, volume_area.y + 1, "-", style);
+                buffer.string(volume_area.x + volume_area.width, volume_area.y, "-", style);
                 buffer.string(
                     volume_area.x + volume_area.width,
                     volume_area.y + 1,
-                    c,
+                    "-",
                     style,
                 );
             }
@@ -254,7 +243,7 @@ impl Widget for PlayEntry {
                 vol_perc
             );
 
-            buffer.string(text_area.x + 1, text_area.y + 1, vol_str, style);
+            buffer.string(text_area.x + 1, text_area.y + 1, &vol_str, style);
         }
 
         self.peak_volume_bar.mute = self.mute;
@@ -262,28 +251,28 @@ impl Widget for PlayEntry {
 
         match self.position {
             EntrySpaceLvl::Parent => {
-                buffer.string(self.area.x, self.area.y, "▼".to_string(), style);
-                buffer.string(self.area.x, self.area.y + 1, "│".to_string(), style);
-                buffer.string(self.area.x, self.area.y + 2, "│".to_string(), style);
+                buffer.string(self.area.x, self.area.y, "▼", style);
+                buffer.string(self.area.x, self.area.y + 1, "│", style);
+                buffer.string(self.area.x, self.area.y + 2, "│", style);
             }
             EntrySpaceLvl::ParentNoChildren => match self.hidden {
                 HiddenStatus::HiddenKids => {
-                    buffer.string(self.area.x, self.area.y, "▲".to_string(), style);
+                    buffer.string(self.area.x, self.area.y, "▲", style);
                 }
                 HiddenStatus::NoKids => {
-                    buffer.string(self.area.x, self.area.y, "▶".to_string(), style);
+                    buffer.string(self.area.x, self.area.y, "▶", style);
                 }
                 _ => {}
             },
             EntrySpaceLvl::MidChild => {
-                buffer.string(self.area.x, self.area.y, "│".to_string(), style);
-                buffer.string(self.area.x, self.area.y + 1, "│".to_string(), style);
-                buffer.string(self.area.x, self.area.y + 2, "├───".to_string(), style);
+                buffer.string(self.area.x, self.area.y, "│", style);
+                buffer.string(self.area.x, self.area.y + 1, "│", style);
+                buffer.string(self.area.x, self.area.y + 2, "├───", style);
             }
             EntrySpaceLvl::LastChild => {
-                buffer.string(self.area.x, self.area.y, "│".to_string(), style);
-                buffer.string(self.area.x, self.area.y + 1, "│".to_string(), style);
-                buffer.string(self.area.x, self.area.y + 2, "└───".to_string(), style);
+                buffer.string(self.area.x, self.area.y, "│", style);
+                buffer.string(self.area.x, self.area.y + 1, "│", style);
+                buffer.string(self.area.x, self.area.y + 2, "└───", style);
             }
             _ => {}
         };
